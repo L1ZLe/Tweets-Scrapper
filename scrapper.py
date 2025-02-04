@@ -11,30 +11,30 @@ from requests import get
 import pandas as pd
 import time, sys, re, os
 from selenium.webdriver.common.by import By
-# from openai import OpenAI  # Commented out
+from openai import OpenAI  # Uncommented
 from dotenv import load_dotenv
 
 class tweets:
     """
     Collects tweets with timestamps from Twitter based on a keyword/hashtag.
-    Includes both tweet text, publication time, and engagement metrics.
+    Includes tweet text, publication time, engagement metrics, and sentiment analysis.
     """
 
     def __init__(self, keyword):
         # Load environment variables
         load_dotenv()
-        # api_key_deepseek = os.getenv("api_key_deepseek")  # Commented out
+        api_key_deepseek = os.getenv("api_key_deepseek")  # Uncommented
 
-        # if not api_key_deepseek:
-        #     raise ValueError("API key for DeepSeek not found in environment variables.")
+        if not api_key_deepseek:
+            raise ValueError("API key for DeepSeek not found in environment variables.")
 
         start_time = datetime.now()
 
-        # Initialize DeepSeek client (commented out)
-        # self.client = OpenAI(
-        #     base_url="https://openrouter.ai/api/v1",
-        #     api_key=api_key_deepseek
-        # )
+        # Initialize DeepSeek client (uncommented)
+        self.client = OpenAI(
+            base_url="https://openrouter.ai/api/v1",
+            api_key=api_key_deepseek
+        )
 
         # Configure Chrome options
         options = Options()
@@ -130,6 +130,31 @@ class tweets:
             else:
                 sentiment = 'negative'
 
+            # DeepSeek sentiment analysis (uncommented)
+            deepseek_sentiment = 'neutral'
+            try:
+                completion = self.client.chat.completions.create(
+                    extra_headers={
+                        "HTTP-Referer": "<YOUR_SITE_URL>",  # Optional
+                        "X-Title": "<YOUR_SITE_NAME>",      # Optional
+                    },
+                    model="deepseek/deepseek-r1:free",
+                    messages=[{
+                        "role": "user",
+                        "content": f"Analyze sentiment of this tweet. Reply ONLY with 'positive', 'neutral', or 'negative': {clean_tweet}"
+                    }]
+                )
+
+                if completion.choices:
+                    response = completion.choices[0].message.content.strip().lower()
+                    if response in ['positive', 'neutral', 'negative']:
+                        deepseek_sentiment = response
+                    else:
+                        print(f"Unexpected DeepSeek response: {response}")
+
+            except Exception as e:
+                print(f"DeepSeek API error: {str(e)}")
+
             # Add to sentiment data
             sentiment_data.append({
                 'tweet': clean_tweet,
@@ -138,6 +163,7 @@ class tweets:
                 'retweets': tweet['retweets'],
                 'likes': tweet['likes'],
                 'sentiment': sentiment,
+                'deepseek_sentiment': deepseek_sentiment,  # Uncommented
                 'vader_compound': vader_scores['compound'],
                 'vader_neg': vader_scores['neg'],
                 'vader_neu': vader_scores['neu'],
