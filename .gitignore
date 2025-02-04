@@ -2,3 +2,4 @@ __pycache__
 temp-twitter
 .env
 myenv
+.~lock.BTCUSDT_price.csv#
