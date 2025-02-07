@@ -29,4 +29,7 @@ def gget_binance_data_by_requests(ticker='ETHUSDT', interval='4h', start='2020-0
   print("Data saved to csv file")
   return df[['open', 'high', 'low', 'close']]
 
+# kheli hado hena ghir bach ntfekerhom
+# price_df = gget_binance_data_by_requests(ticker='BTCUSDT', interval='1m', start='2025-01-01 00:00:00', end='2025-02-01 00:00:00')
+# print(price_df.head())
 
